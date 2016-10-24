@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+#if (COREFX)
 using Microsoft.Extensions.Logging;
+#endif
 using Microsoft.Win32.SafeHandles;
 
 namespace Dapper
@@ -53,7 +55,7 @@ namespace Dapper
             dynParms.Add("@id", id);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation((String.Format("Get<{0}>: {1} with Id: {2}", currenttype, sb, id)));
+                Logger.LogInformation((String.Format("Get<{0}>: {1} with Id: {2}", currenttype, sb, id)));
 
             var query = await connection.QueryAsync<T>(sb.ToString(), dynParms, transaction, commandTimeout);
             return query.FirstOrDefault();
@@ -96,7 +98,7 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
 
             return connection.QueryAsync<T>(sb.ToString(), whereConditions, transaction, commandTimeout);
         }
@@ -133,7 +135,7 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
 
             return connection.QueryAsync<T>(sb.ToString(), null, transaction, commandTimeout);
         }
@@ -194,7 +196,7 @@ namespace Dapper
             query = query.Replace("{Offset}", ((pageNumber - 1) * rowsPerPage).ToString());  
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("GetListPaged<{0}>: {1}", currenttype, query));
+                Logger.LogInformation(String.Format("GetListPaged<{0}>: {1}", currenttype, query));
 
             return connection.QueryAsync<T>(query);
         }
@@ -285,7 +287,7 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("Insert: {0}", sb));
+                Logger.LogInformation(String.Format("Insert: {0}", sb));
 
             if (keytype == typeof(Guid) || keyHasPredefinedValue)
             {
@@ -328,7 +330,7 @@ namespace Dapper
             BuildWhere(sb, idProps, entityToUpdate);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("Update: {0}", sb));
+                Logger.LogInformation(String.Format("Update: {0}", sb));
 
             System.Threading.CancellationToken cancelToken = token ?? default(System.Threading.CancellationToken);
             return connection.ExecuteAsync(new CommandDefinition(sb.ToString(), entityToUpdate, transaction, commandTimeout, cancellationToken: cancelToken));
@@ -363,7 +365,7 @@ namespace Dapper
             BuildWhere(sb, idProps,entityToDelete);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("Delete: {0}", sb));
+                Logger.LogInformation(String.Format("Delete: {0}", sb));
 
             return connection.ExecuteAsync(sb.ToString(), entityToDelete, transaction, commandTimeout);
         }
@@ -404,7 +406,7 @@ namespace Dapper
             dynParms.Add("@id", id);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("Delete<{0}> {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("Delete<{0}> {1}", currenttype, sb));
 
             return connection.ExecuteAsync(sb.ToString(), dynParms, transaction, commandTimeout);
         }
@@ -441,7 +443,7 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
 
             return connection.ExecuteAsync(sb.ToString(), whereConditions, transaction, commandTimeout);
         }
@@ -477,7 +479,7 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
 
             return connection.ExecuteAsync(sb.ToString(), null, transaction, commandTimeout);
         }
@@ -504,7 +506,7 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
 
             return connection.ExecuteScalarAsync<int>(sb.ToString(), null, transaction, commandTimeout);
         }
@@ -538,7 +540,7 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
-                _logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+                Logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
 
             return connection.ExecuteScalarAsync<int>(sb.ToString(), whereConditions, transaction, commandTimeout);
         }

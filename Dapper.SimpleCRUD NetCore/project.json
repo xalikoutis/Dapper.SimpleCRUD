@@ -2,17 +2,53 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "Dapper": "1.50.2",
-    "Microsoft.Extensions.Logging": "1.0.0",
-    "Microsoft.Extensions.Logging.Console": "1.0.0",
-    "System.Reflection.Extensions": "4.0.1",
-    "Microsoft.CSharp": "4.0.1",
-    "NETStandard.Library": "1.6.0"
+    "Dapper": "1.50.2"
   },
 
   "frameworks": {
-    "netstandard1.6": {
-      "imports": "dnxcore50"
+    "net40": {
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
+    },
+    "net45": {
+      "buildOptions": {
+        "define": [ "ASYNC" ]
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
+    },
+    "net451": {
+      "buildOptions": {
+        "define": [ "ASYNC" ]
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.Data.DataSetExtensions": "4.0.0.0",
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
+    },
+    "netstandard1.3": {
+      "buildOptions": {
+        "define": [ "ASYNC", "COREFX" ]
+      },
+      "imports": "dnxcore50",
+      "dependencies": {
+        "Microsoft.Extensions.Logging": "1.0.0",
+        "Microsoft.Extensions.Logging.Console": "1.0.0",
+        "System.Reflection.Extensions": "4.0.1",
+        "Microsoft.CSharp": "4.0.1",
+        "NETStandard.Library": "1.6.0"
+      }
     }
+  },
+  "buildOptions": {
+    "outputName": "Dapper.SimpleCRUD"
   }
 }

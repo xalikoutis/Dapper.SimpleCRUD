@@ -6,7 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp.RuntimeBinder;
+#if (COREFX)
 using Microsoft.Extensions.Logging;
+#endif
 
 namespace Dapper
 {
@@ -31,7 +33,9 @@ namespace Dapper
 
         private static ITableNameResolver _tableNameResolver = new TableNameResolver();
         private static IColumnNameResolver _columnNameResolver = new ColumnNameResolver();
+#if (COREFX)
         private static readonly ILogger Logger = new LoggerFactory().AddConsole().CreateLogger("DapperCrud");
+#endif
         /// <summary>
         /// Returns the current dialect name
         /// </summary>
@@ -131,7 +135,11 @@ namespace Dapper
             dynParms.Add("@id", id);
             
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("Get<{0}>: {1} with Id: {2}", currenttype, sb, id));
+#else
+                Trace.WriteLine(String.Format("Get<{0}>: {1} with Id: {2}", currenttype, sb, id));
+#endif
 
             return connection.Query<T>(sb.ToString(), dynParms, transaction, true, commandTimeout).FirstOrDefault();
         }
@@ -172,7 +180,11 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("GetList<{0}>: {1}", currenttype, sb));
+#endif
 
             return connection.Query<T>(sb.ToString(), whereConditions, transaction, true, commandTimeout);
         }
@@ -208,7 +220,12 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("GetList<{0}>: {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("GetList<{0}>: {1}", currenttype, sb));
+
+#endif
 
             return connection.Query<T>(sb.ToString(), null, transaction, true, commandTimeout);
         }
@@ -275,7 +292,11 @@ namespace Dapper
             query = query.Replace("{Offset}", ((pageNumber - 1) * rowsPerPage).ToString());
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("GetListPaged<{0}>: {1}", currenttype, query));
+#else
+                Trace.WriteLine(String.Format("GetListPaged<{0}>: {1}", currenttype, query));
+#endif
 
             return connection.Query<T>(query, null, transaction, true, commandTimeout);
         }
@@ -367,7 +388,11 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("Insert: {0}", sb));
+#else
+                Trace.WriteLine(String.Format("Insert: {0}", sb));
+#endif
 
             var r = connection.Query(sb.ToString(), entityToInsert, transaction, true, commandTimeout);
 
@@ -410,7 +435,11 @@ namespace Dapper
             BuildWhere(sb, idProps, entityToUpdate);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("Update: {0}", sb));
+#else
+                Trace.WriteLine(String.Format("Update: {0}", sb));
+#endif
 
             return connection.Execute(sb.ToString(), entityToUpdate, transaction, commandTimeout);
         }
@@ -445,7 +474,11 @@ namespace Dapper
             BuildWhere(sb, idProps, entityToDelete);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("Delete: {0}", sb));
+#else
+                Trace.WriteLine(String.Format("Delete: {0}", sb));
+#endif
 
             return connection.Execute(sb.ToString(), entityToDelete, transaction, commandTimeout);
         }
@@ -486,7 +519,11 @@ namespace Dapper
             dynParms.Add("@id", id);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("Delete<{0}> {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("Delete<{0}> {1}", currenttype, sb));
+#endif
 
             return connection.Execute(sb.ToString(), dynParms, transaction, commandTimeout);
         }
@@ -522,7 +559,11 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+#endif
 
             return connection.Execute(sb.ToString(), whereConditions, transaction, commandTimeout);
         }
@@ -558,7 +599,11 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("DeleteList<{0}> {1}", currenttype, sb));
+#endif
 
             return connection.Execute(sb.ToString(), null, transaction, commandTimeout);
         }
@@ -586,7 +631,11 @@ namespace Dapper
             sb.Append(" " + conditions);
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+#endif
 
             return connection.ExecuteScalar<int>(sb.ToString(), null, transaction, commandTimeout);
         }
@@ -620,7 +669,11 @@ namespace Dapper
             }
 
             if (Debugger.IsAttached)
+#if (COREFX)
                 Logger.LogInformation(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+#else
+                Trace.WriteLine(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
+#endif
 
             return connection.ExecuteScalar<int>(sb.ToString(), whereConditions, transaction, commandTimeout);
         }
@@ -960,7 +1013,11 @@ namespace Dapper
                 {
                     columnName = Encapsulate(columnattr.Name);
                     if (Debugger.IsAttached)
+#if (COREFX)
                         Logger.LogInformation(String.Format("Column name for type overridden from {0} to {1}", propertyInfo.Name, columnName));
+#else
+                        Trace.WriteLine(String.Format("Column name for type overridden from {0} to {1}", propertyInfo.Name, columnName));
+#endif
                 }
                 return columnName;
             }
