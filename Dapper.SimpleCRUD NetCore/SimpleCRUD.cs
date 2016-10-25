@@ -979,8 +979,13 @@ namespace Dapper
             public virtual string ResolveTableName(Type type)
             {
                 var tableName = Encapsulate(type.Name);
-
+#if (COREFX)
                 var tableattr = type.GetTypeInfo().GetCustomAttributes(true).SingleOrDefault(attr => attr.GetType().Name == typeof(TableAttribute).Name) as dynamic;
+#else
+                var tableattr =
+                    type.GetCustomAttributes(true)
+                        .SingleOrDefault(attr => attr.GetType().Name == typeof(TableAttribute).Name) as dynamic;
+#endif
                 if (tableattr != null)
                 {
                     tableName = Encapsulate(tableattr.Name);
@@ -1187,6 +1192,10 @@ internal static class TypeExtension
                                    typeof(DateTimeOffset),
                                    typeof(byte[])
                                };
+#if (COREFX)
         return simpleTypes.Contains(type) || type.GetTypeInfo().IsEnum;
+#else
+        return simpleTypes.Contains(type) || type.IsEnum;
+#endif
     }
 }
