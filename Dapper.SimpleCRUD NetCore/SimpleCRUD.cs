@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -33,6 +34,7 @@ namespace Dapper
 
         private static ITableNameResolver _tableNameResolver = new TableNameResolver();
         private static IColumnNameResolver _columnNameResolver = new ColumnNameResolver();
+
 #if (COREFX)
         private static readonly ILogger Logger = new LoggerFactory().AddConsole().CreateLogger("DapperCrud");
 #endif
@@ -133,7 +135,8 @@ namespace Dapper
 
             var dynParms = new DynamicParameters();
             dynParms.Add("@id", id);
-            
+
+
             if (Debugger.IsAttached)
 #if (COREFX)
                 Logger.LogInformation(String.Format("Get<{0}>: {1} with Id: {2}", currenttype, sb, id));
@@ -192,17 +195,19 @@ namespace Dapper
         /// <summary>
         /// <para>By default queries the table matching the class name</para>
         /// <para>-Table name can be overridden by adding an attribute on your class [Table("YourTableName")]</para>
-        /// <para>conditions is an SQL where clause and/or order by clause ex: "where name='bob'"</para>
+        /// <para>conditions is an SQL where clause and/or order by clause ex: "where name='bob'" or "where age>=@Age"</para>
+        /// <para>parameters is an anonymous type to pass in named parameter values: new { Age = 15 }</para>
         /// <para>Supports transaction and command timeout</para>
         /// <para>Returns a list of entities that match where conditions</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
         /// <param name="conditions"></param>
+        /// <param name="parameters"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns>Gets a list of entities with optional SQL where conditions</returns>
-        public static IEnumerable<T> GetList<T>(this IDbConnection connection, string conditions, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static IEnumerable<T> GetList<T>(this IDbConnection connection, string conditions, object parameters = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var currenttype = typeof(T);
             var idProps = GetIdProperties(currenttype).ToList();
@@ -227,7 +232,7 @@ namespace Dapper
 
 #endif
 
-            return connection.Query<T>(sb.ToString(), null, transaction, true, commandTimeout);
+            return connection.Query<T>(sb.ToString(), parameters, transaction, true, commandTimeout);
         }
 
         /// <summary>
@@ -246,8 +251,9 @@ namespace Dapper
         /// <summary>
         /// <para>By default queries the table matching the class name</para>
         /// <para>-Table name can be overridden by adding an attribute on your class [Table("YourTableName")]</para>
-        /// <para>conditions is an SQL where clause ex: "where name='bob'" - not required </para>
+        /// <para>conditions is an SQL where clause ex: "where name='bob'" or "where age>=@Age" - not required </para>
         /// <para>orderby is a column or list of columns to order by ex: "lastname, age desc" - not required - default is by primary key</para>
+        /// <para>parameters is an anonymous type to pass in named parameter values: new { Age = 15 }</para>
         /// <para>Supports transaction and command timeout</para>
         /// <para>Returns a list of entities that match where conditions</para>
         /// </summary>
@@ -257,10 +263,11 @@ namespace Dapper
         /// <param name="rowsPerPage"></param>
         /// <param name="conditions"></param>
         /// <param name="orderby"></param>
+        /// <param name="parameters"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns>Gets a paged list of entities with optional exact match where conditions</returns>
-        public static IEnumerable<T> GetListPaged<T>(this IDbConnection connection, int pageNumber, int rowsPerPage, string conditions, string orderby, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static IEnumerable<T> GetListPaged<T>(this IDbConnection connection, int pageNumber, int rowsPerPage, string conditions, string orderby, object parameters = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (string.IsNullOrEmpty(_getPagedListSql))
                 throw new Exception("GetListPage is not supported with the current SQL Dialect");
@@ -298,7 +305,7 @@ namespace Dapper
                 Trace.WriteLine(String.Format("GetListPaged<{0}>: {1}", currenttype, query));
 #endif
 
-            return connection.Query<T>(query, null, transaction, true, commandTimeout);
+            return connection.Query<T>(query, parameters, transaction, true, commandTimeout);
         }
 
         /// <summary>
@@ -573,18 +580,20 @@ namespace Dapper
         /// <para>By default deletes records in the table matching the class name</para>
         /// <para>-Table name can be overridden by adding an attribute on your class [Table("YourTableName")]</para>
         /// <para>Deletes records where that match the where clause</para>
-        /// <para>conditions is an SQL where clause ex: "where name='bob'"</para>
+        /// <para>conditions is an SQL where clause ex: "where name='bob'" or "where age>=@Age"</para>
+        /// <para>parameters is an anonymous type to pass in named parameter values: new { Age = 15 }</para>
 
-        /// <para>The number of records effected</para>
+
         /// <para>Supports transaction and command timeout</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
         /// <param name="conditions"></param>
+        /// <param name="parameters"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns>The number of records effected</returns>
-        public static int DeleteList<T>(this IDbConnection connection, string conditions, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int DeleteList<T>(this IDbConnection connection, string conditions, object parameters = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (string.IsNullOrEmpty(conditions))
                 throw new ArgumentException("DeleteList<T> requires a where clause");
@@ -605,7 +614,7 @@ namespace Dapper
                 Trace.WriteLine(String.Format("DeleteList<{0}> {1}", currenttype, sb));
 #endif
 
-            return connection.Execute(sb.ToString(), null, transaction, commandTimeout);
+            return connection.Execute(sb.ToString(), parameters, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -613,15 +622,17 @@ namespace Dapper
         /// <para>-Table name can be overridden by adding an attribute on your class [Table("YourTableName")]</para>
         /// <para>Returns a number of records entity by a single id from table T</para>
         /// <para>Supports transaction and command timeout</para>
-        /// <para>conditions is an SQL where clause ex: "where name='bob'" - not required </para>
+        /// <para>conditions is an SQL where clause ex: "where name='bob'" or "where age>=@Age" - not required </para>
+        /// <para>parameters is an anonymous type to pass in named parameter values: new { Age = 15 }</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
         /// <param name="conditions"></param>
+        /// <param name="parameters"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns>Returns a count of records.</returns>
-        public static int RecordCount<T>(this IDbConnection connection, string conditions = "", IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int RecordCount<T>(this IDbConnection connection, string conditions = "", object parameters = null, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var currenttype = typeof(T);
             var name = GetTableName(currenttype);
@@ -637,7 +648,7 @@ namespace Dapper
                 Trace.WriteLine(String.Format("RecordCount<{0}>: {1}", currenttype, sb));
 #endif
 
-            return connection.ExecuteScalar<int>(sb.ToString(), null, transaction, commandTimeout);
+            return connection.ExecuteScalar<int>(sb.ToString(), parameters, transaction, commandTimeout);
         }
 
         /// <summary>
@@ -693,14 +704,14 @@ namespace Dapper
             }
         }
 
-        //build select clause based on list of properties skipping ones with the IgnoreSelect attribute
+        //build select clause based on list of properties skipping ones with the IgnoreSelect and NotMapped attribute
         private static void BuildSelect(StringBuilder sb, IEnumerable<PropertyInfo> props)
         {
             var propertyInfos = props as IList<PropertyInfo> ?? props.ToList();
             var addedAny = false;
             for (var i = 0; i < propertyInfos.Count(); i++)
             {
-                if (propertyInfos.ElementAt(i).GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(IgnoreSelectAttribute).Name)) continue;
+                if (propertyInfos.ElementAt(i).GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(IgnoreSelectAttribute).Name || attr.GetType().Name == typeof(NotMappedAttribute).Name)) continue;
 
                 if (addedAny)
                     sb.Append(",");
@@ -753,6 +764,7 @@ namespace Dapper
         //Not marked with the Editable(false) attribute
         //Not marked with the [Key] attribute (without required attribute)
         //Not marked with [IgnoreInsert]
+        //Not marked with [NotMapped]
         private static void BuildInsertValues(object entityToInsert, StringBuilder sb)
         {
             var props = GetScaffoldableProperties(entityToInsert).ToArray();
@@ -764,6 +776,7 @@ namespace Dapper
                       && property.GetCustomAttributes(true).All(attr => attr.GetType().Name != typeof(RequiredAttribute).Name))
                     continue;
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(IgnoreInsertAttribute).Name)) continue;
+                if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(NotMappedAttribute).Name)) continue;
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(ReadOnlyAttribute).Name && IsReadOnly(property))) continue;
 
                 if (property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && property.GetCustomAttributes(true).All(attr => attr.GetType().Name != typeof(RequiredAttribute).Name) && property.PropertyType != typeof(Guid)) continue;
@@ -782,6 +795,7 @@ namespace Dapper
         //marked with the [Key] attribute
         //marked with [IgnoreInsert]
         //named Id
+        //marked with [NotMapped]
         private static void BuildInsertParameters(object entityToInsert, StringBuilder sb)
         {
             var props = GetScaffoldableProperties(entityToInsert).ToArray();
@@ -794,6 +808,7 @@ namespace Dapper
                       && property.GetCustomAttributes(true).All(attr => attr.GetType().Name != typeof(RequiredAttribute).Name))
                     continue;
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(IgnoreInsertAttribute).Name)) continue;
+                if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(NotMappedAttribute).Name)) continue;
 
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(ReadOnlyAttribute).Name && IsReadOnly(property))) continue;
                 if (property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && property.GetCustomAttributes(true).All(attr => attr.GetType().Name != typeof(RequiredAttribute).Name) && property.PropertyType != typeof(Guid)) continue;
@@ -860,6 +875,7 @@ namespace Dapper
         //Not marked with the Key attribute
         //Not marked ReadOnly
         //Not marked IgnoreInsert
+        //Not marked NotMapped
         private static IEnumerable<PropertyInfo> GetUpdateableProperties(object entity)
         {
             var updateableProperties = GetScaffoldableProperties(entity);
@@ -871,6 +887,8 @@ namespace Dapper
             updateableProperties = updateableProperties.Where(p => p.GetCustomAttributes(true).Any(attr => (attr.GetType().Name == typeof(ReadOnlyAttribute).Name) && IsReadOnly(p)) == false);
             //remove ones with IgnoreUpdate attribute
             updateableProperties = updateableProperties.Where(p => p.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(IgnoreUpdateAttribute).Name) == false);
+            //remove ones that are not mapped
+            updateableProperties = updateableProperties.Where(p => p.GetCustomAttributes(true).Any(attr => attr.GetType().Name == typeof(NotMappedAttribute).Name) == false);
 
             return updateableProperties;
         }
@@ -979,6 +997,7 @@ namespace Dapper
             public virtual string ResolveTableName(Type type)
             {
                 var tableName = Encapsulate(type.Name);
+
 #if (COREFX)
                 var tableattr = type.GetTypeInfo().GetCustomAttributes(true).SingleOrDefault(attr => attr.GetType().Name == typeof(TableAttribute).Name) as dynamic;
 #else
@@ -1081,6 +1100,15 @@ namespace Dapper
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class KeyAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+	/// Optional NotMapped attribute.
+    /// You can use the System.ComponentModel.DataAnnotations version in its place to specify that the property is not mapped
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class NotMappedAttribute : Attribute
     {
     }
 

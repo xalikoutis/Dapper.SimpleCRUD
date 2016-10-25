@@ -5,15 +5,31 @@
   },
 
   "dependencies": {
-    "Microsoft.NETCore.App": {
-      "type": "platform",
-      "version": "1.0.1"
-    }
+    "Dapper.SimpleCRUD NetCore": {
+      "target": "project"
+    },
+    "Dapper": "1.50.2",
+    "xunit": "2.1.0"
   },
 
   "frameworks": {
     "netcoreapp1.0": {
-      "imports": "dnxcore50"
+      "imports": [
+        "portable-net451+win8",
+        "dnxcore50"
+      ],
+      "buildOptions": {
+        "define": [ "ASYNC", "COREFX", "XUNIT2", "SQLITE" ]
+      },
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.1",
+          "type": "platform"
+        },
+        "Microsoft.Data.Sqlite": "1.0.0",
+        "Npgsql": "3.1.8",
+        "MySql.Data.Core": "7.0.4-IR-191"
+      }
     }
   }
 }
