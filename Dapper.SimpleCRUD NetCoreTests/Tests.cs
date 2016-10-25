@@ -5,7 +5,11 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Npgsql;
+#if NET40 || NET45
+using System.Data.SQLite;
+#else
 using Microsoft.Data.Sqlite;
+#endif
 using MySql.Data.MySqlClient;
 
 namespace Dapper.SimpleCRUD_NetCoreTests
@@ -162,8 +166,12 @@ namespace Dapper.SimpleCRUD_NetCoreTests
             }
             else if (_dbtype == SimpleCRUD.Dialect.SQLite)
             {
+#if COREFX
                 connection = new SqliteConnection("Data Source=MyDatabase.sqlite;");
-                
+#else
+                connection = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+#endif
+
                 SimpleCRUD.SetDialect(SimpleCRUD.Dialect.SQLite);
             }
             else if (_dbtype == SimpleCRUD.Dialect.MySQL)

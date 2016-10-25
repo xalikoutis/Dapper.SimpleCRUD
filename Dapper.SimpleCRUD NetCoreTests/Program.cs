@@ -8,7 +8,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using Npgsql;
+#if NET40 || NET45
+using System.Data.SQLite;
+#else
 using Microsoft.Data.Sqlite;
+#endif
 
 namespace Dapper.SimpleCRUD_NetCoreTests
 {
@@ -16,6 +20,11 @@ namespace Dapper.SimpleCRUD_NetCoreTests
     {
         public static void Main(string[] args)
         {
+#if COREFX
+            Console.WriteLine("CoreCLR");
+#else
+            Console.WriteLine(".NET: " + Environment.Version);
+#endif
             Setup();
             RunTests();
 
@@ -24,7 +33,7 @@ namespace Dapper.SimpleCRUD_NetCoreTests
             //SetupPg(); 
             //RunTestsPg();   
 
-            SetupSqLite();
+            //SetupSqLite();
             //RunTestsSqLite();
 
             //MySQL tests assume port 3306 with username admin and password admin
@@ -100,7 +109,13 @@ namespace Dapper.SimpleCRUD_NetCoreTests
             //File.Delete(Directory.GetCurrentDirectory() + "\\MyDatabase.sqlite");
             //SqliteConnection.CreateFile("MyDatabase.sqlite");
             //var connection = new SqliteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+#if COREFX
             var connection = new SqliteConnection("Data Source=:memory:");
+#else
+            File.Delete(Directory.GetCurrentDirectory() + "\\MyDatabase.sqlite");
+            SQLiteConnection.CreateFile("MyDatabase.sqlite");
+            var connection = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+#endif
 
             using (connection)
             {

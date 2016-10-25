@@ -13,6 +13,40 @@
   },
 
   "frameworks": {
+    "net451": {
+      "buildOptions": {
+        "define": [
+          "NET45",
+          "ASYNC",
+          "MYSQL",
+          "ENTITY_FRAMEWORK",
+          "LINQ2SQL",
+          "FIREBIRD",
+          "SQL_CE",
+          "POSTGRESQL",
+          "OLEDB",
+          "MASSIVE",
+          "ORMLITE",
+          "SOMA",
+          "SIMPLEDATA",
+          "SQLITE",
+          "XUNIT2"
+        ]
+      },
+      "frameworkAssemblies": {
+        "System.Configuration": "4.0.0.0",
+        "System.Data": "4.0.0.0",
+        "System.Data.Linq": "4.0.0.0",
+        "System.Xml": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0",
+        "System.Runtime": "4.0.10.0" 
+      },
+      "dependencies": {
+        "MySql.Data": "6.9.9",
+        "Npgsql": "3.1.8",
+        "System.Data.SQLite": "1.0.103"
+      }
+    },
     "netcoreapp1.0": {
       "imports": [
         "portable-net451+win8",
